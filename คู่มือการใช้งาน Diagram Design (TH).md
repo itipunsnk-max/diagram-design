@@ -479,6 +479,213 @@ complexity budget และ reduced-motion/static behavior
 รัน self-check หลังแก้ และรายงานไฟล์ที่เปลี่ยน
 ```
 
+### 14.1 คลัง prompt ตามประเภทที่ใช้บ่อย
+
+Prompt ที่ดีควรบอก 6 เรื่องให้ครบ: **สิ่งที่ต้องการสื่อ, ข้อมูลจริง, type, ผู้ชม, รูปแบบผลลัพธ์ และข้อจำกัดที่ต้องตรวจ** ถ้าเป็นข้อมูลเชิงปริมาณให้ระบุหน่วยและวิธี normalize; ถ้าเป็น workflow ให้ระบุเจ้าของงานและ handoff; ถ้าเป็น animation ให้ระบุว่าขั้นใดควรปรากฏก่อน
+
+#### A. Animation — reveal, step และ loop
+
+ใช้ `reveal` เมื่ออยากเล่าเรื่องตามลำดับหนึ่งรอบ, ใช้ `step` เมื่อต้องการสอนหรือให้ผู้ชมย้อนดูแต่ละสถานะ, และใช้ `loop` เฉพาะ token ตกแต่งที่วนซ้ำโดยไม่เปลี่ยนความหมายของภาพ
+
+**Reveal: ลำดับการอนุมัติแบบเล่นครั้งเดียว**
+
+```text
+ใช้ diagram-design สร้าง process diagram แบบ animated เรื่องการอนุมัติ CAPEX
+semantic pattern: Stage framework with semantic slots
+lanes: Requester, CAPEX Portal, Finance, Approver, ERP
+steps: Submit request → Validate budget → Finance review → Approve/Reject → Post to ERP
+ข้อมูลสำคัญ: requester, amount, budget code, approval result
+animation: mode=reveal; แสดงทีละขั้นจากซ้ายไปขวา เล่นอัตโนมัติครั้งเดียวแล้วค้างที่เฟรมสมบูรณ์
+ข้อกำหนด: static/no-JS ต้องอ่านรู้เรื่อง, รองรับ prefers-reduced-motion, ไม่ animate layout หรือ connector geometry
+ผู้ชม: mixed
+ขนาด: slide-16x9
+variant: minimal light
+format: html
+ชื่อไฟล์: capex-approval-reveal.html
+รัน verify-motion.py และ self-check ก่อนส่ง
+```
+
+**Step: สอน policy trace และให้กดทีละขั้น**
+
+```text
+ใช้ diagram-design สร้าง flowchart แบบ animated สำหรับสอน policy trace ของคำขอ CAPEX
+trace A: budget available → amount within limit → manager approved → PASS
+trace B: budget available → amount over limit → NOT REACHED → FAIL
+animation: mode=step; มี Play, Pause, Replay, Previous, Next และ keyboard ArrowLeft/ArrowRight/Home/End/Space
+กำหนด 5 semantic steps, แสดงได้ไม่เกิน 2 รายการต่อ step, มี role=status aria-live แบบ scoped
+เฟรม static ต้องแสดงทั้งสอง trace และสถานะ PASS/FAIL/NOT REACHED ด้วยข้อความหรือสัญลักษณ์ ไม่ใช้สีอย่างเดียว
+prefers-reduced-motion: แสดง final static frame และซ่อน controls
+ผู้ชม: executive
+ขนาด: doc-wide
+format: html
+ชื่อไฟล์: capex-policy-trace-step.html
+```
+
+**Loop: token ตกแต่งที่ไม่เปลี่ยนความหมาย**
+
+```text
+สร้าง swimlane diagram เรื่องการส่งข้อมูลจาก Field Services ไป Data Platform
+ใช้ animation mode=loop เฉพาะ token ขนาดเล็กที่เคลื่อนตามเส้นทางหลักทุก 4 วินาที
+ห้ามวนซ้ำ semantic node, status, quantity, outcome หรือข้อความ; connector และข้อมูลต้องมองเห็นครบเมื่อปิด JavaScript
+รองรับ print และ prefers-reduced-motion โดยซ่อน decorative token
+ผู้ชม: engineer; ขนาด: doc-wide; variant: minimal dark; format: html
+ชื่อไฟล์: field-data-loop.html
+```
+
+**กฎสั้น ๆ ของ animation:** จำกัด semantic steps ไม่เกิน 8, marked items ไม่เกิน 12, เปิดพร้อมกันไม่เกิน 2 รายการ, autoplay รวมไม่เกิน 8 วินาที และใช้ controller จาก `assets/template-motion.html` ตามต้นฉบับ
+
+#### B. Fishbone / Ishikawa — วิเคราะห์ root cause
+
+สะกดที่ถูกต้องคือ `Fishbone` หรือ `Ishikawa` ไม่ใช่ `fishboane` ใช้เมื่อมี **effect เดียวที่สังเกตได้** แล้วต้องจัดกลุ่มสาเหตุ; อย่าใส่แนวทางแก้ลงใน effect box และอย่าใช้แทน timeline ของเหตุการณ์
+
+```text
+ใช้ diagram-design สร้าง fishbone / Ishikawa diagram สำหรับ root-cause analysis
+effect ที่สังเกตได้: CAPEX approval SLA เกิน 5 วันทำการในเดือนกรกฎาคม
+categories และ sub-causes:
+- Data: cost center ไม่ครบ, budget code ไม่ตรง, เอกสารแนบซ้ำ
+- Process: review gate ซ้ำ, ไม่มี SLA escalation, approval route ไม่ชัด
+- System: ERP sync ช้า, validation error ไม่แสดงรายละเอียด, notification ตกหล่น
+- People: ผู้อนุมัติไม่อยู่, เจ้าหน้าที่ใหม่ไม่รู้ขั้นตอน
+- Policy: threshold เปลี่ยนแต่คู่มือยังไม่อัปเดต
+confirmed root cause: ERP sync ช้า อยู่ในหมวด System ให้เน้นด้วย accent เพียง 1 bone
+ข้อกำหนด: ใช้ไม่เกิน 5 bones, แต่ละ bone มี sub-causes ที่ตรวจสอบแล้วไม่เกิน 3 รายการ,
+effect ต้องเป็น symptom/measurement ไม่ใช่ solution, แสดง legend และ accessibility ครบ
+ผู้ชม: mixed; ขนาด: doc-wide; detail: balanced; variant: full editorial; format: html
+ชื่อไฟล์: capex-approval-sla-fishbone.html
+```
+
+#### C. Radar / Spider — เปรียบเทียบหลาย entity
+
+ใช้เมื่อมี 3–5 entity และ 3–5 criteria ที่อยู่บน scale เดียวกัน หลัง normalize แล้วเท่านั้น ควรเน้น focal series เพียง 1 series และไม่ใส่จุดบนทุก polygon
+
+```text
+ใช้ diagram-design สร้าง radar / spider chart เปรียบเทียบระบบจัดเก็บเอกสาร 4 ตัวเลือก
+entities: SharePoint, S3, MinIO, Google Drive
+criteria และ scale: Security, Cost, Latency, Governance, Adoption ให้ normalize เป็น 0–10
+values:
+- SharePoint: 8, 6, 6, 9, 8
+- S3: 9, 8, 9, 7, 6
+- MinIO: 8, 9, 8, 6, 5
+- Google Drive: 6, 6, 5, 7, 9
+focal series: S3 เพราะเหมาะกับ workload หลัก; ใช้ accent เฉพาะ series นี้และ vertex dots ของมัน
+แสดง scale ticks ที่แกนบนเพียงแกนเดียว, grid 5 rings, legend แนวนอนด้านล่าง
+อย่าใช้ native scale ปะปนกันและอย่าเพิ่มเกิน 5 axes หรือ 5 series
+ผู้ชม: mixed; ขนาด: slide-16x9; variant: minimal light; format: html+png
+ชื่อไฟล์: document-storage-radar.html
+```
+
+**เวอร์ชันผู้บริหารที่สั้นกว่า**
+
+```text
+สร้าง radar chart สำหรับเลือกแพลตฟอร์ม CAPEX โดยเปรียบเทียบ SAP, Oracle และ Custom Portal
+ใช้ 5 criteria ที่ normalize 0–10: time-to-value, control, integration, cost, adoption
+แสดง 1 focal series คือทางเลือกที่แนะนำ พร้อมคำอธิบายสั้น 1 ประโยคใต้ legend
+ตัด protocol, port และ implementation detail ออก; audience=executive; size=social-og
+variant=minimal light; format=html; ชื่อไฟล์=capex-platform-radar.html
+```
+
+#### D. Gantt — แผนงานและช่วงเวลาซ้อนกัน
+
+ใช้เมื่อมี start/end date หรือช่วงเวลาอย่างชัดเจน และต้องการเห็นงานที่ทำพร้อมกัน milestone หรือ critical task; จำกัดไม่เกิน 12 tasks ต่อภาพ
+
+```text
+ใช้ diagram-design สร้าง Gantt chart สำหรับโครงการติดตั้ง CAPEX workflow
+ช่วงเวลา: 2026-10-01 ถึง 2026-12-18 แสดงรายสัปดาห์บนแกน X
+phases และ tasks:
+- Discovery: เก็บ requirement 2026-10-01..2026-10-09, ยืนยัน scope 2026-10-12..2026-10-16
+- Build: ออกแบบ workflow 2026-10-19..2026-10-30, พัฒนา integration 2026-10-26..2026-11-20
+- Validate: SIT 2026-11-23..2026-12-04, UAT 2026-12-07..2026-12-11
+- Rollout: training 2026-12-07..2026-12-15, go-live milestone 2026-12-18
+focal task: UAT; แสดง today marker ที่ 2026-11-16 และ milestone เป็น marker ไม่ใช่ bar ยาว
+จัดกลุ่ม phase ด้วยโซนบาง ๆ, ใช้ accent เฉพาะ focal task, ไม่ใส่ dependency arrows เว้นแต่จำเป็นจริง
+ผู้ชม: mixed; ขนาด: slide-16x9; detail: balanced; variant: minimal light; format: html
+ชื่อไฟล์: capex-workflow-gantt.html
+ตรวจจำนวน tasks, การอ่านชื่อ phase และ legend ก่อนส่ง
+```
+
+#### E. Process — ขั้นตอนพร้อม actor, input/output และ tool
+
+เลือก `process` เมื่อ input/output payload และเครื่องมือของแต่ละขั้นมีความหมาย ถ้าต้องการเพียงเจ้าของงานกับลำดับแบบง่าย ให้ใช้ `swimlane` แทน
+
+```text
+ใช้ diagram-design สร้าง process diagram สำหรับการตรวจรับงานก่อสร้าง CAPEX
+lanes:
+- Site Team (SITE)
+- Engineering (ENG)
+- Procurement (PROC)
+- Finance (FIN)
+steps จากซ้ายไปขวา:
+1 Submit handover: input=completion pack, output=handover request, tool=Field App, owner=SITE
+2 Check technical scope: input=handover request, output=technical verdict, tool=Checklist, owner=ENG
+3 Verify contract: input=technical verdict, output=vendor clearance, tool=ERP, owner=PROC
+4 Validate invoice: input=vendor clearance, output=payment-ready record, tool=AP Portal, owner=FIN
+5 Close project: input=payment-ready record, output=closed CAPEX, tool=ERP, owner=FIN
+ระบุ arrows ระหว่าง cell ที่มี handoff จริงเท่านั้น; node ทุกตัวต้องมี IN/OUT chip และ tool
+เน้น step 2 เป็น focal step และ node ที่พบ defect เป็น focal nodeได้อย่างละ 1 จุด
+ไม่เกิน 6 lanes, 12 steps, ไม่มี diagonal connector และแยก overview/detail หากข้อมูลล้น
+ผู้ชม: mixed; ขนาด: slide-16x9; variant: full editorial; format: html
+ชื่อไฟล์: capex-handover-process.html
+```
+
+#### F. Swimlane — workflow ข้ามทีมแบบอ่านง่าย
+
+ใช้ `swimlane` เมื่อแกนหลักคือ **ใครทำอะไรและส่งต่องานให้ใคร** โดยให้แต่ละ step อยู่ใน lane ของ owner เพียงคนเดียว และวางลำดับให้ลูกศรย้อนกลับน้อยที่สุด
+
+```text
+ใช้ diagram-design สร้าง swimlane diagram เรื่อง change request ตั้งแต่แจ้งปัญหาจน deploy
+lanes: Requester, Service Desk, Developer, QA, Release Manager
+steps ตามลำดับ:
+Requester: เปิด ticket
+Service Desk: ตรวจข้อมูลและจัด priority
+Developer: วิเคราะห์และสร้าง patch
+QA: ทดสอบ regression
+Release Manager: อนุมัติ release
+Developer: deploy ไป staging
+QA: ตรวจ smoke test
+Release Manager: deploy production และปิด ticket
+ทำให้ handoff ระหว่าง Service Desk→Developer และ QA→Release Manager เด่นที่สุด
+ทุก step ต้องอยู่ lane เดียว, lane ต้องมี label, ไม่วาดกล่องคร่อมสอง lane,
+หลีกเลี่ยงเส้นที่วกกลับ; ใช้ accent ไม่เกิน 2 จุดและ arrows แบบ rounded orthogonal
+ผู้ชม: mixed; ขนาด: doc-wide; detail: balanced; variant: minimal light; format: html
+ชื่อไฟล์: change-request-swimlane.html
+```
+
+#### G. Sankey — ปริมาณที่แยกและรวม
+
+ใช้ `sankey` เมื่อ **ความหนาของ ribbon มีความหมายเป็นปริมาณ** ต้องมี exactly 3 stage columns, ยอดรวมแต่ละ stage ต้องสมดุล และไม่ควรใช้กับลำดับขั้นธรรมดาที่ไม่มีการ split/merge
+
+```text
+ใช้ diagram-design สร้าง Sankey diagram แสดงการใช้เวลา CI ของทีมใน 1 เดือน
+unit: นาที; scale เดียวกันทั้งภาพ; รวมทั้งหมด 12,000 นาที
+column 1 / source: CI budget = 12,000
+column 2 / test stage: Unit tests = 5,200; E2E tests = 4,000; Build = 2,000; Lint = 800
+column 3 / outcome: Passed = 9,400; Failed = 1,600; Flaked = 1,000
+flows:
+- CI budget → Unit tests 5,200 → Passed 4,800 / Failed 200 / Flaked 200
+- CI budget → E2E tests 4,000 → Passed 3,200 / Failed 500 / Flaked 300
+- CI budget → Build 2,000 → Passed 1,700 / Failed 300
+- CI budget → Lint 800 → Passed 700 / Failed 100
+ตรวจให้ทุก node balance และ ribbon ขั้นต่ำมองเห็นได้; ถ้าเล็กเกิน 4px ให้รวมเป็น Other
+จัดลำดับ node เพื่อลด crossing, ใช้ muted กับ flow ปกติ และ accent เฉพาะเส้นทาง Flaked → rerun
+ห้าม arrowhead, ห้าม rainbow ต่อ flow, ไม่เกิน 8 nodes และ 12 ribbons
+ผู้ชม: engineer; ขนาด: doc-wide; detail: faithful; variant: minimal dark; format: html+png
+ชื่อไฟล์: ci-time-sankey.html
+```
+
+#### H. Prompt แบบสั้นสำหรับเริ่มต้นเร็ว
+
+```text
+สร้าง [radar|gantt|process|swimlane|sankey|fishbone] เรื่อง [หัวข้อ]
+เป้าหมาย: [ประโยคเดียวว่าผู้อ่านต้องเข้าใจอะไร]
+ข้อมูลจริง: [รายการข้อมูล/วันที่/ปริมาณ/owner]
+จุดเน้น: [ไม่เกิน 1–2 จุด]
+ผู้ชม: mixed; ขนาด: doc-wide; detail: balanced; variant: minimal light; format: html
+ตรวจ type fit, complexity budget, accessibility, 4px grid, connector/ribbon rules และ self-check
+ส่งไฟล์ self-contained ชื่อ [slug].html พร้อมสรุป assumption ที่ใช้
+```
+
+ก่อนส่ง prompt ให้ตรวจว่า Fishbone มี effect เดียว, Radar ใช้ scale เดียว, Gantt มีวันที่จริง, Process มี input/output/tool, Swimlane มี owner ต่อ step และ Sankey balance ครบทุก column
+
 ## 15. ตำแหน่งไฟล์อ้างอิง
 
 โดยปกติ skill อยู่ที่:
