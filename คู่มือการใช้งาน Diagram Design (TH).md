@@ -686,6 +686,52 @@ flows:
 
 ก่อนส่ง prompt ให้ตรวจว่า Fishbone มี effect เดียว, Radar ใช้ scale เดียว, Gantt มีวันที่จริง, Process มี input/output/tool, Swimlane มี owner ต่อ step และ Sankey balance ครบทุก column
 
+### 14.2 ภาพตัวอย่างจาก repository
+
+ภาพทั้งหมดด้านล่างเป็น screenshot ที่เก็บอยู่ใน `docs/screenshots/` และอ้างอิงด้วย relative path จึงแสดงผลได้ทั้งใน GitHub และใน preview ของ Markdown ภายใน repository ภาพเป็น **static final frame**; หากต้องการ animation ให้สร้างเป็น HTML แล้วเปิดโหมด `reveal`, `step` หรือ `loop` ตาม prompt ในหัวข้อ 14.1
+
+#### Animation / Loop
+
+![ตัวอย่าง Loop diagram — shared memory และวงจร Capture → Research → Decide → Act → Measure → Learn](docs/screenshots/loop.png)
+
+> ภาพนี้ใช้ดูโครงสร้าง static ของ loop; token ที่เคลื่อนที่เป็น animation ต้องเป็น decorative และต้องไม่เปลี่ยนความหมายของ diagram
+
+#### Fishbone / Ishikawa
+
+![ตัวอย่าง Fishbone diagram — checkout p99 latency และ confirmed root cause](docs/screenshots/fishbone.png)
+
+> สังเกตว่า effect อยู่ที่หัวปลา, สาเหตุถูกจัดเป็น bone และมี root cause ที่เน้นด้วย accent เพียงหนึ่งกลุ่ม
+
+#### Radar / Spider
+
+![ตัวอย่าง Radar / Spider chart — เปรียบเทียบ storage backends บน 5 criteria](docs/screenshots/radar.png)
+
+> ใช้แกน 5 แกนบน scale เดียวกัน และเน้น series ที่แนะนำด้วย accent พร้อม vertex dots
+
+#### Gantt
+
+![ตัวอย่าง Gantt chart — phase, task, critical gate และช่วงเวลาที่ซ้อนกัน](docs/screenshots/gantt.png)
+
+> ใช้แถบงานสำหรับช่วง start/end, แบ่ง phase เป็นโซน และใช้ accent กับ critical gate เพียงจุดหลัก
+
+#### Process
+
+![ตัวอย่าง Process diagram — หลาย actor พร้อม input/output, tool และ data handoff](docs/screenshots/process.png)
+
+> เหมาะเมื่อแต่ละ step ต้องอ่าน owner, data type และเครื่องมือที่ใช้ได้พร้อมกัน ไม่ใช่แค่ลำดับของงาน
+
+#### Swimlane
+
+![ตัวอย่าง Swimlane diagram — workflow ข้าม Author, Reviewer, Editor และ CI/CD](docs/screenshots/swimlane.png)
+
+> แต่ละ step อยู่ใน lane ของ owner เดียว และ handoff ข้าม lane เป็นจุดสำคัญของภาพ
+
+#### Sankey
+
+![ตัวอย่าง Sankey diagram — CI minutes แยกเป็น test stages และรวมเป็น outcomes](docs/screenshots/sankey.png)
+
+> ความหนาของ ribbon แทนปริมาณจริง, มี 3 stage columns, ไม่มี arrowhead และยอดรวมระหว่าง stage ต้อง balance
+
 ## 15. ตำแหน่งไฟล์อ้างอิง
 
 โดยปกติ skill อยู่ที่:
